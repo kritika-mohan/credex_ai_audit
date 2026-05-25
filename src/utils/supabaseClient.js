@@ -11,59 +11,37 @@ export const supabase = isSupabaseConfigured
   : null;
 
 /**
- * Saves audit result and lead info.
- * Fallback: saves to localStorage and returns a Base64 URL parameter hash.
+ * Saves audit result.
+ * Table: audits
+ * - id (uuid, primary key)
+ * - data (jsonb)
+ * - created_at (timestamp)
  */
-export async function saveAuditToDb({ email, companyName, role, inputTools, auditResults, teamSize, useCase, currency }) {
-  const payload = {
-    email,
-    company_name: companyName,
-    role,
-    input_tools: inputTools,
-    audit_results: auditResults,
-    team_size: teamSize,
-    use_case: useCase,
-    currency,
-    created_at: new Date().toISOString()
-  };
-
+export async function saveAudit(auditData) {
   if (isSupabaseConfigured) {
     try {
       const { data, error } = await supabase
         .from('audits')
-        .insert([payload])
+        .insert([{ data: auditData }])
         .select('id')
         .single();
       
       if (error) throw error;
       return { success: true, id: data.id, isLocal: false };
     } catch (err) {
-      console.warn("Supabase insert failed. Falling back to local storage.", err);
-      // Fallback to local storage if network or table issue
+      console.warn("Supabase saveAudit failed, falling back to local storage.", err);
     }
   }
 
   // Fallback storage: Local Storage + Hash generation
   const localId = `local_${Math.random().toString(36).substring(2, 11)}`;
   
-  // Store full record in localStorage for local retrieval
   const localAudits = JSON.parse(localStorage.getItem('spendwise_audits') || '{}');
-  localAudits[localId] = payload;
+  localAudits[localId] = { data: auditData, created_at: new Date().toISOString() };
   localStorage.setItem('spendwise_audits', JSON.stringify(localAudits));
 
   // Generate a compressed sharing payload hash to put in URL
-  const sharingData = {
-    input_tools: inputTools,
-    audit_results: auditResults,
-    team_size: teamSize,
-    use_case: useCase,
-    currency,
-    company_name: companyName
-  };
-
-  // Convert to Base64 (safely handling Unicode characters)
-  const jsonStr = JSON.stringify(sharingData);
-  const hash = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+  const hash = btoa(encodeURIComponent(JSON.stringify(auditData)).replace(/%([0-9A-F]{2})/g, (match, p1) => {
     return String.fromCharCode('0x' + p1);
   }));
 
@@ -71,9 +49,40 @@ export async function saveAuditToDb({ email, companyName, role, inputTools, audi
 }
 
 /**
+ * Saves lead info.
+ * Table: leads
+ * - id (uuid, primary key)
+ * - email (text)
+ * - company (text)
+ * - role (text)
+ * - audit_id (uuid)
+ * - created_at (timestamp)
+ */
+export async function saveLead(email, company, role, auditId) {
+  if (isSupabaseConfigured && auditId && !auditId.startsWith('local_')) {
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .insert([{ email, company, role, audit_id: auditId }]);
+      
+      if (error) throw error;
+      return { success: true, isLocal: false };
+    } catch (err) {
+      console.warn("Supabase saveLead failed. Falling back to local storage.", err);
+    }
+  }
+
+  // Fallback: local storage
+  const localLeads = JSON.parse(localStorage.getItem('spendwise_leads') || '{}');
+  localLeads[auditId] = { email, company, role, created_at: new Date().toISOString() };
+  localStorage.setItem('spendwise_leads', JSON.stringify(localLeads));
+  return { success: true, isLocal: true };
+}
+
+/**
  * Fetches audit by ID or hash.
  */
-export async function fetchAuditFromDb(id, hash = null) {
+export async function getAuditById(id, hash = null) {
   // Scenario A: Hash is provided in query params (Fallback sharing)
   if (hash) {
     try {
@@ -84,13 +93,12 @@ export async function fetchAuditFromDb(id, hash = null) {
       return { 
         success: true, 
         data: {
-          input_tools: parsedData.input_tools,
-          audit_results: parsedData.audit_results,
-          team_size: parsedData.team_size,
-          use_case: parsedData.use_case,
+          input_tools: parsedData.inputTools || parsedData.input_tools,
+          audit_results: parsedData.auditResults || parsedData.audit_results,
+          team_size: parsedData.teamSize || parsedData.team_size,
+          use_case: parsedData.useUseCase || parsedData.use_case,
           currency: parsedData.currency,
-          company_name: parsedData.company_name,
-          created_at: new Date().toISOString()
+          company_name: parsedData.companyName || parsedData.company_name
         },
         isLocal: true
       };
@@ -109,7 +117,34 @@ export async function fetchAuditFromDb(id, hash = null) {
         .single();
 
       if (error) throw error;
-      return { success: true, data, isLocal: false };
+      
+      const auditPayload = data.data;
+
+      // Try fetching company name from lead info
+      let companyName = '';
+      try {
+        const { data: leadData } = await supabase
+          .from('leads')
+          .select('company')
+          .eq('audit_id', id)
+          .maybeSingle();
+        if (leadData) companyName = leadData.company;
+      } catch (leadErr) {
+        console.warn("Could not fetch lead details for audit dashboard:", leadErr);
+      }
+
+      return { 
+        success: true, 
+        data: {
+          input_tools: auditPayload.inputTools || auditPayload.input_tools,
+          audit_results: auditPayload.auditResults || auditPayload.audit_results,
+          team_size: auditPayload.teamSize || auditPayload.team_size,
+          use_case: auditPayload.useCase || auditPayload.use_case,
+          currency: auditPayload.currency,
+          company_name: companyName || auditPayload.companyName || auditPayload.company_name
+        },
+        isLocal: false 
+      };
     } catch (err) {
       console.warn("Supabase fetch failed. Checking local storage.", err);
     }
@@ -118,9 +153,24 @@ export async function fetchAuditFromDb(id, hash = null) {
   // Scenario C: Local Storage lookup
   if (id) {
     const localAudits = JSON.parse(localStorage.getItem('spendwise_audits') || '{}');
-    const localData = localAudits[id];
-    if (localData) {
-      return { success: true, data: localData, isLocal: true };
+    const localRecord = localAudits[id];
+    if (localRecord) {
+      const auditPayload = localRecord.data;
+      const localLeads = JSON.parse(localStorage.getItem('spendwise_leads') || '{}');
+      const leadData = localLeads[id];
+
+      return { 
+        success: true, 
+        data: {
+          input_tools: auditPayload.inputTools || auditPayload.input_tools,
+          audit_results: auditPayload.auditResults || auditPayload.audit_results,
+          team_size: auditPayload.teamSize || auditPayload.team_size,
+          use_case: auditPayload.useCase || auditPayload.use_case,
+          currency: auditPayload.currency,
+          company_name: leadData?.company || auditPayload.companyName || auditPayload.company_name
+        },
+        isLocal: true 
+      };
     }
   }
 

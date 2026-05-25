@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, Calendar, Share2, Wallet, ArrowRight, ShieldCheck, Cpu } from 'lucide-react';
-import { fetchAuditFromDb } from '../utils/supabaseClient';
+import { getAuditById } from '../utils/supabaseClient';
 import ResultCard from '../components/ResultCard';
 
 export default function Share() {
@@ -17,7 +17,7 @@ export default function Share() {
     async function loadSharedAudit() {
       setIsLoading(true);
       // Fetch details using ID or hash
-      const res = await fetchAuditFromDb(id === 'shared' ? null : id, hash);
+      const res = await getAuditById(id === 'shared' ? null : id, hash);
       if (res.success) {
         setAuditData(res.data);
       } else {

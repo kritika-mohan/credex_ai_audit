@@ -5,7 +5,7 @@ import {
   ShieldAlert, Sparkles, TrendingDown, Layers, Lightbulb, 
   HelpCircle, ChevronDown, Check, Zap, Star, MessageSquare 
 } from 'lucide-react';
-import Hero from '../components/Hero';
+import AnimatedHero from '../components/AnimatedHero';
 
 const FEATURES = [
   {
@@ -75,7 +75,7 @@ export default function Home() {
   return (
     <div className="bg-slate-950 text-slate-100 min-h-screen">
       {/* Hero Section */}
-      <Hero />
+      <AnimatedHero />
 
       {/* Feature Grid Section */}
       <section id="features" className="py-20 border-t border-slate-900 bg-slate-950 relative">

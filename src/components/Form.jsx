@@ -5,7 +5,7 @@ import {
   Sparkles, Check, ArrowRight, ArrowLeft, Trash2, HelpCircle, 
   Mail, Building, Briefcase, DollarSign, Users, Cpu, FileCode, Search, Edit3
 } from 'lucide-react';
-import { saveAuditToDb } from '../utils/supabaseClient';
+import { saveAudit, saveLead } from '../utils/supabaseClient';
 import { runSpendAudit } from '../utils/auditEngine';
 
 // Tool metadata helper
@@ -243,17 +243,27 @@ export default function Form() {
       // Run Audit Core Logic
       const auditResults = runSpendAudit(mappedTools, primaryCurrency);
 
-      // Save to Supabase (or fallback storage)
-      const saveResponse = await saveAuditToDb({
-        email: companyDetails.email,
-        companyName: companyDetails.companyName,
-        role: companyDetails.role,
+      // Save Audit to Supabase
+      const auditData = {
         inputTools: mappedTools,
         auditResults: auditResults,
         teamSize: Number(companyDetails.teamSize),
         useCase: companyDetails.useCase,
-        currency: primaryCurrency
-      });
+        currency: primaryCurrency,
+        companyName: companyDetails.companyName
+      };
+
+      const saveResponse = await saveAudit(auditData);
+
+      // Save Lead if audit save succeeded
+      if (saveResponse.success && saveResponse.id) {
+        await saveLead(
+          companyDetails.email,
+          companyDetails.companyName,
+          companyDetails.role,
+          saveResponse.id
+        );
+      }
 
       // Clear localStorage draft on success
       localStorage.removeItem('spendwise_form_state');

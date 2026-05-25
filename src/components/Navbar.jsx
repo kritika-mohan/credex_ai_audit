@@ -1,11 +1,24 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Menu, X, ShieldCheck, Wallet } from 'lucide-react';
+import { Sparkles, Menu, X, ShieldCheck, Wallet, Moon, Sun } from 'lucide-react';
+import { useEffect } from 'react';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
 
   return (
     <nav className="sticky top-0 z-50 w-full glass-panel border-b border-slate-800 bg-slate-950/70 backdrop-blur-md">
@@ -50,10 +63,22 @@ export default function Navbar() {
                 <span>Audit My Spend</span>
               </motion.button>
             </Link>
+            <button 
+              onClick={toggleTheme} 
+              className="p-2 rounded-full border border-slate-800 bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5 text-indigo-400" />}
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center space-x-2">
+            <button 
+              onClick={toggleTheme} 
+              className="p-2 rounded-full border border-slate-800 bg-slate-900 text-slate-300 hover:text-white transition-colors"
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5 text-indigo-400" />}
+            </button>
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="inline-flex items-center justify-center rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white focus:outline-none"

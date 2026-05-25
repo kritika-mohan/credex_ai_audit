@@ -6,7 +6,7 @@ import {
   Sparkles, Calendar, Share2, Copy, Check, TrendingDown, 
   HelpCircle, Mail, Phone, ChevronRight, AlertTriangle, ArrowLeft
 } from 'lucide-react';
-import { fetchAuditFromDb } from '../utils/supabaseClient';
+import { getAuditById } from '../utils/supabaseClient';
 import { generateMockAiSummary } from '../utils/auditEngine';
 import ResultCard from '../components/ResultCard';
 
@@ -27,7 +27,7 @@ export default function Results() {
   useEffect(() => {
     async function loadAudit() {
       setIsLoading(true);
-      const res = await fetchAuditFromDb(auditId, hash);
+      const res = await getAuditById(auditId, hash);
       if (res.success) {
         setAuditData(res.data);
         
@@ -39,7 +39,7 @@ export default function Results() {
               particleCount: 80,
               spread: 60,
               origin: { y: 0.65 },
-              colors: ['#6366f1', '#a855f7', '#ec4899']
+              colors: ['#eab308', '#f97316', '#22c55e']
             });
           }, 400);
         }
@@ -220,7 +220,7 @@ export default function Results() {
                 {/* Background Ring */}
                 <circle 
                   cx="50" cy="50" r="40" 
-                  stroke="#1e293b" strokeWidth="8" fill="transparent" 
+                  stroke="var(--slate-800)" strokeWidth="8" fill="transparent" 
                 />
                 {/* Progress Ring */}
                 <motion.circle 
@@ -233,9 +233,9 @@ export default function Results() {
                 />
                 <defs>
                   <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#6366f1" />
-                    <stop offset="50%" stopColor="#a855f7" />
-                    <stop offset="100%" stopColor="#ec4899" />
+                    <stop offset="0%" stopColor="var(--brand-1)" />
+                    <stop offset="50%" stopColor="var(--brand-2)" />
+                    <stop offset="100%" stopColor="var(--brand-3)" />
                   </linearGradient>
                 </defs>
               </svg>
