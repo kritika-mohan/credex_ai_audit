@@ -6,6 +6,8 @@ import {
   HelpCircle, ChevronDown, Check, Zap, Star, MessageSquare 
 } from 'lucide-react';
 import AnimatedHero from '../components/AnimatedHero';
+import { useCurrency } from '../context/CurrencyContext';
+import formatCurrency from '../utils/formatCurrency';
 
 const FEATURES = [
   {
@@ -25,18 +27,18 @@ const FEATURES = [
   }
 ];
 
-const AUDIT_RULES = [
+const getAuditRules = (currency) => [
   {
     rule: "Seat Count Match",
     scenario: "ChatGPT or Claude Team plans with under 3 active members.",
     action: "Downgrade seats to individual Plus/Pro plans.",
-    savings: "Up to $10/user per month + removes minimum user penalties."
+    savings: `Up to ${formatCurrency(10, currency)}/user per month + removes minimum user penalties.`
   },
   {
     rule: "Editor Redundancy",
     scenario: "Paid Cursor subscription running alongside GitHub Copilot.",
     action: "Deprecate Copilot; Cursor has built-in completions.",
-    savings: "Save $10 - $20 per seat monthly."
+    savings: `Save ${formatCurrency(10, currency)} - ${formatCurrency(20, currency)} per seat monthly.`
   },
   {
     rule: "API Optimization",
@@ -46,7 +48,7 @@ const AUDIT_RULES = [
   }
 ];
 
-const FAQS = [
+const getFaqs = (currency) => [
   {
     q: "How does the SpendWise AI audit work?",
     a: "We analyze your active AI tool configurations, seat distributions, and API expenditures. Using our optimization engine, we cross-reference this against plan rules, redundancy rules, and API billing options to generate a customized savings map."
@@ -57,7 +59,7 @@ const FAQS = [
   },
   {
     q: "What kind of teams benefit most from SpendWise AI?",
-    a: "Teams between 2 and 150 members experience the highest rate of 'subscription creep'—paying for multiple redundant tools per developer or marketer. We regularly find savings of $200–$1,200/month for these cohorts."
+    a: `Teams between 2 and 150 members experience the highest rate of 'subscription creep'—paying for multiple redundant tools per developer or marketer. We regularly find savings of ${formatCurrency(200, currency)}–${formatCurrency(1200, currency)}/month for these cohorts.`
   },
   {
     q: "Can I customize the recommendation rules?",
@@ -66,6 +68,7 @@ const FAQS = [
 ];
 
 export default function Home() {
+  const { currency } = useCurrency();
   const [activeFaq, setActiveFaq] = useState(null);
 
   const toggleFaq = (index) => {
@@ -137,7 +140,7 @@ export default function Home() {
 
             {/* Right: Heuristic Cards */}
             <div className="lg:col-span-7 space-y-4">
-              {AUDIT_RULES.map((rule, idx) => (
+              {getAuditRules(currency).map((rule, idx) => (
                 <div 
                   key={idx}
                   className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5 space-y-2 hover:border-slate-700 transition-colors"
@@ -174,7 +177,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="rounded-2xl border border-slate-800 bg-slate-900/20 p-6 space-y-4 flex flex-col justify-between">
               <p className="text-sm text-slate-300 italic">
-                &ldquo;We were paying for both Copilot and Cursor licenses for 14 devs. SpendWise AI immediately caught it, saving us over $200 a month with a single recommendation.&rdquo;
+                &ldquo;We were paying for both Copilot and Cursor licenses for 14 devs. SpendWise AI immediately caught it, saving us over {formatCurrency(200, currency)} a month with a single recommendation.&rdquo;
               </p>
               <div className="flex items-center space-x-3 pt-4 border-t border-slate-800/60">
                 <div className="h-10 w-10 rounded-full bg-indigo-500/20 flex items-center justify-center font-bold text-indigo-400 text-sm">
@@ -189,7 +192,7 @@ export default function Home() {
 
             <div className="rounded-2xl border border-slate-800 bg-slate-900/20 p-6 space-y-4 flex flex-col justify-between">
               <p className="text-sm text-slate-300 italic">
-                &ldquo;I set up a 2-seat ChatGPT Team plan last year. SpendWise flagged that downgrading to Plus was safe for our small workflow. Instant downgrade saved us $120/year.&rdquo;
+                &ldquo;I set up a 2-seat ChatGPT Team plan last year. SpendWise flagged that downgrading to Plus was safe for our small workflow. Instant downgrade saved us {formatCurrency(120, currency)}/year.&rdquo;
               </p>
               <div className="flex items-center space-x-3 pt-4 border-t border-slate-800/60">
                 <div className="h-10 w-10 rounded-full bg-purple-500/20 flex items-center justify-center font-bold text-purple-400 text-sm">
@@ -229,7 +232,7 @@ export default function Home() {
           </div>
 
           <div className="space-y-4">
-            {FAQS.map((faq, idx) => {
+            {getFaqs(currency).map((faq, idx) => {
               const isOpen = activeFaq === idx;
               return (
                 <div 

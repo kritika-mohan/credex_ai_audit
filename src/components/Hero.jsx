@@ -3,7 +3,11 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight, Shield, Award, Users, TrendingUp } from 'lucide-react';
 
+import { useCurrency } from '../context/CurrencyContext';
+import formatCurrency from '../utils/formatCurrency';
+
 export default function Hero() {
+  const { currency } = useCurrency();
   const [estSpend, setEstSpend] = useState(150);
 
   // Estimating 35% savings on average
@@ -88,7 +92,7 @@ export default function Hero() {
               className="pt-6 grid grid-cols-3 gap-4 border-t border-slate-800/80 max-w-md mx-auto lg:mx-0"
             >
               <div>
-                <p className="text-2xl font-bold text-white">$145k+</p>
+                <p className="text-2xl font-bold text-white">{formatCurrency(145000, currency)}+</p>
                 <p className="text-xs text-slate-400">Total savings generated</p>
               </div>
               <div>
@@ -126,7 +130,7 @@ export default function Hero() {
                 <div>
                   <div className="flex justify-between text-sm mb-2 text-slate-300">
                     <span>Current Monthly AI Spend:</span>
-                    <span className="font-bold text-white text-lg">${estSpend}</span>
+                    <span className="font-bold text-white text-lg">{formatCurrency(estSpend, currency)}</span>
                   </div>
                   <input
                     type="range"
@@ -138,9 +142,9 @@ export default function Hero() {
                     className="w-full h-2 rounded-lg bg-slate-800 appearance-none cursor-pointer accent-indigo-500"
                   />
                   <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-                    <span>$20</span>
-                    <span>$500</span>
-                    <span>$1000+</span>
+                    <span>{formatCurrency(20, currency)}</span>
+                    <span>{formatCurrency(500, currency)}</span>
+                    <span>{formatCurrency(1000, currency)}+</span>
                   </div>
                 </div>
 
@@ -152,11 +156,11 @@ export default function Hero() {
                     animate={{ scale: 1, opacity: 1 }}
                     className="text-4xl font-extrabold text-indigo-400 tracking-tight"
                   >
-                    ${estimatedSavings}
+                    {formatCurrency(estimatedSavings, currency)}
                     <span className="text-sm text-slate-400 font-medium">/month</span>
                   </motion.p>
                   <span className="text-[10px] text-slate-500 block mt-1">
-                    (${estimatedSavings * 12} saved annually)
+                    ({formatCurrency(estimatedSavings * 12, currency)} saved annually)
                   </span>
                 </div>
 

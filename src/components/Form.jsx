@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, Check, ArrowRight, ArrowLeft, Trash2, HelpCircle, 
-  Mail, Building, Briefcase, DollarSign, Users, Cpu, FileCode, Search, Edit3
+  Mail, Building, Briefcase, IndianRupee, Users, Cpu, FileCode, Search, Edit3
 } from 'lucide-react';
 import { saveAudit, saveLead } from '../utils/supabaseClient';
 import { runSpendAudit } from '../utils/auditEngine';
+import { useCurrency } from '../context/CurrencyContext';
 
 // Tool metadata helper
 const AVAILABLE_TOOLS = [
@@ -20,11 +21,12 @@ const AVAILABLE_TOOLS = [
 
 export default function Form() {
   const navigate = useNavigate();
+  const { currency } = useCurrency();
   const [step, setStep] = useState(1);
 
   // Form State
   const [selectedTools, setSelectedTools] = useState([]); // list of tool IDs
-  const [toolConfigs, setToolConfigs] = useState({}); // { chatgpt: { plan: 'Plus', monthlySpend: 20, users: 1, currency: '$' } }
+  const [toolConfigs, setToolConfigs] = useState({}); // { chatgpt: { plan: 'Plus', monthlySpend: 20, users: 1, currency: '₹' } }
   const [companyDetails, setCompanyDetails] = useState({
     teamSize: '',
     useCase: 'mixed',
@@ -81,8 +83,7 @@ export default function Form() {
         [toolId]: {
           plan: toolDef.defaultPlan,
           monthlySpend: toolDef.defaultCost,
-          users: 1,
-          currency: '$'
+          users: 1
         }
       });
     }
@@ -232,13 +233,13 @@ export default function Form() {
           plan: config.plan,
           monthlySpend: Number(config.monthlySpend),
           users: Number(config.users || 1),
-          currency: config.currency || '$',
+          currency: currency,
           useCase: companyDetails.useCase
         };
       });
 
       // Select dominant currency
-      const primaryCurrency = toolConfigs[selectedTools[0]]?.currency || '$';
+      const primaryCurrency = currency;
 
       // Run Audit Core Logic
       const auditResults = runSpendAudit(mappedTools, primaryCurrency);
@@ -439,25 +440,14 @@ export default function Form() {
                           />
                         </div>
 
-                        {/* Currency Toggle */}
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-semibold text-slate-400">Currency</label>
-                          <select
-                            value={config.currency}
-                            onChange={(e) => handleConfigChange(toolId, 'currency', e.target.value)}
-                            className="w-full rounded-lg border border-slate-800 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
-                          >
-                            <option value="$">USD ($)</option>
-                            <option value="₹">INR (₹)</option>
-                          </select>
-                        </div>
+
 
                         {/* Monthly Spend */}
                         <div className="space-y-1.5">
                           <label className="text-xs font-semibold text-slate-400">Monthly Bill</label>
                           <div className="relative">
                             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                              <span className="text-slate-500 text-sm">{config.currency}</span>
+                              <span className="text-slate-500 text-sm">{currency === 'USD' ? '$' : '₹'}</span>
                             </div>
                             <input
                               type="number"

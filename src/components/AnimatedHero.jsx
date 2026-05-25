@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, ShieldCheck, Wallet, Cpu, DollarSign, TrendingDown, Users, Code } from 'lucide-react';
+import { Sparkles, ArrowRight, ShieldCheck, Wallet, Cpu, IndianRupee, TrendingDown, Users, Code } from 'lucide-react';
+
+import { useCurrency } from '../context/CurrencyContext';
+import formatCurrency from '../utils/formatCurrency';
 
 export default function AnimatedHero() {
+  const { currency } = useCurrency();
   const [estSpend, setEstSpend] = useState(150);
   const estimatedSavings = Math.round(estSpend * 0.35);
 
@@ -18,7 +22,7 @@ export default function AnimatedHero() {
   }));
 
   return (
-    <div className="relative overflow-hidden pt-12 pb-24 md:pt-20 md:pb-32 min-h-[90vh] flex items-center bg-slate-950 text-slate-100">
+    <div className="relative overflow-hidden pt-12 pb-24 md:pt-20 md:pb-32 min-h-[90vh] flex items-center bg-transparent text-slate-100">
       
       {/* 1. FUTURISTIC BACKGROUND AND PARTICLES */}
       <div className="absolute inset-0 -z-20 overflow-hidden">
@@ -94,19 +98,19 @@ export default function AnimatedHero() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.15 }}
-              className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white leading-tight"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.1]"
             >
-              AI Spend <br className="hidden sm:inline" />
-              <span className="gradient-text font-black">Intelligence</span>
+              Optimize Your AI Spend <br className="hidden sm:inline" />
+              <span className="gradient-text font-black">Like a Pro</span>
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="mx-auto lg:mx-0 max-w-lg text-sm sm:text-base text-slate-400 leading-relaxed"
+              className="mx-auto lg:mx-0 max-w-lg text-sm sm:text-base md:text-lg text-slate-400 leading-relaxed font-medium"
             >
-              Visualize and optimize your AI costs in real time. Identify seat overlap, plan mismatches, and discover immediate opportunities to save hundreds monthly.
+              Get intelligent insights and save thousands instantly.
             </motion.p>
 
             <motion.div 
@@ -117,20 +121,20 @@ export default function AnimatedHero() {
             >
               <Link to="/audit">
                 <motion.button
-                  whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(249, 115, 22, 0.4)" }}
+                  whileHover={{ scale: 1.05, boxShadow: "0 10px 30px rgba(99, 102, 241, 0.4)" }}
                   whileTap={{ scale: 0.95 }}
-                  className="glow-btn flex items-center space-x-2 rounded-full bg-gradient-to-r from-brand-1 via-brand-2 to-brand-3 px-7 py-3.5 text-sm font-bold text-white shadow-xl"
+                  className="glow-btn flex items-center space-x-2 rounded-full bg-gradient-to-r from-brand-1 via-brand-2 to-brand-3 px-8 py-4 text-sm md:text-base font-bold text-white shadow-xl transition-all"
                 >
                   <span>Audit My Spend</span>
-                  <ArrowRight className="h-4.5 w-4.5" />
+                  <ArrowRight className="h-5 w-5" />
                 </motion.button>
               </Link>
               
               <a href="#features">
                 <motion.button
-                  whileHover={{ scale: 1.05, backgroundColor: "var(--slate-800)" }}
+                  whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.05)" }}
                   whileTap={{ scale: 0.95 }}
-                  className="flex items-center space-x-2 rounded-full border border-slate-800 bg-slate-900/40 px-6 py-3.5 text-sm font-semibold text-slate-200 transition-colors"
+                  className="flex items-center space-x-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md px-8 py-4 text-sm md:text-base font-semibold text-slate-200 transition-colors"
                 >
                   <span>See How It Works</span>
                 </motion.button>
@@ -209,9 +213,9 @@ export default function AnimatedHero() {
                 animate={{
                   scale: [1, 1.15, 1],
                   boxShadow: [
-                    "0 0 30px rgba(249, 115, 22, 0.4)",
-                    "0 0 50px rgba(249, 115, 22, 0.7)",
-                    "0 0 30px rgba(249, 115, 22, 0.4)"
+                    "0 0 40px rgba(99, 102, 241, 0.4)",
+                    "0 0 70px rgba(99, 102, 241, 0.7)",
+                    "0 0 40px rgba(99, 102, 241, 0.4)"
                   ]
                 }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -245,14 +249,14 @@ export default function AnimatedHero() {
               }}
               whileHover={{ 
                 scale: 1.05, 
-                boxShadow: "0 0 35px rgba(234, 179, 8, 0.35)",
-                borderColor: "rgba(234, 179, 8, 0.4)" 
+                boxShadow: "0 20px 40px rgba(99, 102, 241, 0.2)",
+                borderColor: "rgba(255, 255, 255, 0.2)" 
               }}
-              className="absolute top-4 left-4 md:top-8 md:left-8 z-20 w-[220px] rounded-2xl bg-white/5 backdrop-blur-lg border border-white/10 p-4 shadow-xl transition-all"
+              className="absolute top-4 left-4 md:top-8 md:left-8 z-20 w-[220px] rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 p-5 shadow-2xl transition-all"
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-bold text-brand-1 tracking-wider uppercase flex items-center gap-1">
-                  <DollarSign className="w-3.5 h-3.5" /> ROI Calculator
+                  <IndianRupee className="w-3.5 h-3.5" /> ROI Calculator
                 </span>
                 <span className="text-[8px] bg-slate-900 border border-slate-800 rounded px-1 text-slate-400">
                   Interactive
@@ -261,7 +265,7 @@ export default function AnimatedHero() {
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-[11px] text-slate-300">
                   <span>AI Spend:</span>
-                  <span className="font-bold text-white">${estSpend}/mo</span>
+                  <span className="font-bold text-white">{formatCurrency(estSpend, currency)}/mo</span>
                 </div>
                 <input
                   type="range"
@@ -272,9 +276,9 @@ export default function AnimatedHero() {
                   onChange={(e) => setEstSpend(Number(e.target.value))}
                   className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-brand-1"
                 />
-                <div className="rounded-lg bg-slate-950/60 p-2 text-center border border-slate-900">
-                  <span className="text-[9px] text-slate-400 block">Est. Monthly Savings</span>
-                  <span className="text-lg font-black text-brand-1">${estimatedSavings}</span>
+                <div className="rounded-xl bg-slate-900/80 p-3 text-center border border-white/5 shadow-inner">
+                  <span className="text-[9px] text-slate-400 block uppercase tracking-wider font-bold mb-1">Est. Monthly Savings</span>
+                  <span className="text-xl font-black text-brand-1">{formatCurrency(estimatedSavings, currency)}</span>
                 </div>
               </div>
             </motion.div>
@@ -296,10 +300,10 @@ export default function AnimatedHero() {
               }}
               whileHover={{ 
                 scale: 1.05, 
-                boxShadow: "0 0 35px rgba(34, 197, 94, 0.35)",
-                borderColor: "rgba(34, 197, 94, 0.4)" 
+                boxShadow: "0 20px 40px rgba(20, 184, 166, 0.2)",
+                borderColor: "rgba(255, 255, 255, 0.2)" 
               }}
-              className="absolute top-2 right-4 md:top-6 md:right-8 z-20 w-[200px] rounded-2xl bg-white/5 backdrop-blur-lg border border-white/10 p-4 shadow-xl transition-all"
+              className="absolute top-2 right-4 md:top-6 md:right-8 z-20 w-[200px] rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 p-5 shadow-2xl transition-all"
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-bold text-brand-3 tracking-wider uppercase flex items-center gap-1">
@@ -331,7 +335,7 @@ export default function AnimatedHero() {
                     transition={{ duration: 2, repeat: Infinity }}
                   />
                 </svg>
-                <p className="text-[8px] text-slate-400">Total verified savings: $145k+</p>
+                <p className="text-[8px] text-slate-400">Total verified savings: {formatCurrency(145000, currency)}+</p>
               </div>
             </motion.div>
 
@@ -352,22 +356,22 @@ export default function AnimatedHero() {
               }}
               whileHover={{ 
                 scale: 1.05, 
-                boxShadow: "0 0 35px rgba(249, 115, 22, 0.35)",
-                borderColor: "rgba(249, 115, 22, 0.4)" 
+                boxShadow: "0 20px 40px rgba(168, 85, 247, 0.2)",
+                borderColor: "rgba(255, 255, 255, 0.2)" 
               }}
-              className="absolute bottom-4 left-4 md:bottom-8 md:left-8 z-20 w-[210px] rounded-2xl bg-white/5 backdrop-blur-lg border border-white/10 p-4 shadow-xl transition-all"
+              className="absolute bottom-4 left-4 md:bottom-8 md:left-8 z-20 w-[210px] rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 p-5 shadow-2xl transition-all"
             >
               <span className="text-[10px] font-bold text-brand-2 tracking-wider uppercase flex items-center gap-1 mb-2">
                 <Sparkles className="w-3.5 h-3.5" /> Recommendation
               </span>
               <div className="space-y-2 text-[10px]">
-                <div className="rounded-lg bg-brand-2/10 border border-brand-2/20 p-2 text-slate-200">
-                  <span className="font-bold text-brand-2 block">Redundant Editors</span>
+                <div className="rounded-xl bg-brand-2/10 border border-brand-2/20 p-3 text-slate-200">
+                  <span className="font-bold text-brand-2 block mb-1">Redundant Editors</span>
                   Cursor Pro + GitHub Copilot detected.
                 </div>
                 <div className="flex justify-between items-center text-[9px] text-brand-3 font-bold">
                   <span>Action: Cancel Copilot</span>
-                  <span>Save $20/mo</span>
+                  <span>Save {formatCurrency(20, currency)}/mo</span>
                 </div>
               </div>
             </motion.div>
@@ -389,10 +393,10 @@ export default function AnimatedHero() {
               }}
               whileHover={{ 
                 scale: 1.05, 
-                boxShadow: "0 0 35px rgba(234, 179, 8, 0.35)",
-                borderColor: "rgba(234, 179, 8, 0.4)" 
+                boxShadow: "0 20px 40px rgba(99, 102, 241, 0.2)",
+                borderColor: "rgba(255, 255, 255, 0.2)" 
               }}
-              className="absolute bottom-4 right-4 md:bottom-8 md:right-8 z-20 w-[190px] rounded-2xl bg-white/5 backdrop-blur-lg border border-white/10 p-4 shadow-xl transition-all"
+              className="absolute bottom-4 right-4 md:bottom-8 md:right-8 z-20 w-[190px] rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 p-5 shadow-2xl transition-all"
             >
               <span className="text-[10px] font-bold text-slate-300 tracking-wider uppercase flex items-center gap-1 mb-3">
                 <Code className="w-3.5 h-3.5 text-brand-1" /> Active Stack

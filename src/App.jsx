@@ -6,6 +6,7 @@ import Audit from './pages/Audit';
 import Results from './pages/Results';
 import Share from './pages/Share';
 import NotFound from './pages/NotFound';
+import { CurrencyProvider } from './context/CurrencyContext';
 
 const pageTransition = {
   initial: { opacity: 0, y: 12 },
@@ -34,12 +35,14 @@ function AnimatedRoutes() {
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-slate-950 font-sans text-slate-100 selection:bg-purple-500 selection:text-white">
-        <Navbar />
-        <AnimatedRoutes />
-      </div>
-    </Router>
+    <CurrencyProvider>
+      <Router>
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black font-sans text-slate-200 selection:bg-indigo-500/30 selection:text-white">
+          <Navbar />
+          <AnimatedRoutes />
+        </div>
+      </Router>
+    </CurrencyProvider>
   );
 }
 

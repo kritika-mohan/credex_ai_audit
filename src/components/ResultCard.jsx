@@ -1,28 +1,27 @@
 import { motion } from 'framer-motion';
 import { Sparkles, TrendingDown, HelpCircle, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useCurrency } from '../context/CurrencyContext';
+import formatCurrency from '../utils/formatCurrency';
 
 export default function ResultCard({ rec }) {
-  const { tool, currentSpend, recommendedAction, savings, reason } = rec;
+  const { currency } = useCurrency();
+  const { tool, recommendedAction, savingsRaw, currentSpendRaw, reason } = rec;
 
-  // Extract savings number for highlighting. E.g. "$120" -> 120 or "₹10000" -> 10000 (roughly >$500 is >40,000 INR)
+  // Extract savings number for highlighting.
   const isHighSavings = () => {
-    if (!savings) return false;
-    const num = parseInt(savings.replace(/[^0-9]/g, '')) || 0;
-    if (savings.includes('₹')) {
-      return num >= 40000; // ~500 USD in INR
-    }
-    return num >= 150; // High savings threshold
+    return savingsRaw >= 150; // High savings threshold (USD)
   };
 
   const highSavingsFlag = isHighSavings();
 
   return (
     <motion.div
-      whileHover={{ y: -6, transition: { duration: 0.2 } }}
-      className={`glass-panel rounded-2xl p-6 relative overflow-hidden border ${
+      whileHover={{ y: -6, scale: 1.02, boxShadow: '0 20px 40px rgba(99, 102, 241, 0.15)' }}
+      transition={{ duration: 0.3 }}
+      className={`rounded-2xl p-6 relative overflow-hidden backdrop-blur-xl ${
         highSavingsFlag 
-          ? 'border-indigo-500/40 bg-gradient-to-b from-indigo-950/20 to-slate-900/40 shadow-lg shadow-indigo-500/5' 
-          : 'border-slate-800 bg-slate-900/20'
+          ? 'bg-gradient-to-b from-indigo-500/10 to-white/5 border border-indigo-500/30 shadow-[0_8px_30px_rgb(0,0,0,0.12)]' 
+          : 'bg-white/5 border border-white/10'
       }`}
     >
       {/* High Savings Banner */}
@@ -42,20 +41,20 @@ export default function ResultCard({ rec }) {
               {tool}
             </h4>
             <p className="text-xs text-slate-400 mt-0.5">
-              Current Spend: <span className="font-semibold text-slate-200">{currentSpend}</span>
+              Current Spend: <span className="font-semibold text-slate-200">{formatCurrency(currentSpendRaw || 0, currency)}</span>
             </p>
           </div>
 
           <div className="text-left sm:text-right">
             <span className="text-xs text-slate-400 block">Monthly Savings</span>
             <span className="text-2xl font-extrabold text-indigo-400 tracking-tight">
-              {savings}
+              {formatCurrency(savingsRaw || 0, currency)}
             </span>
           </div>
         </div>
 
         {/* Action Recommendation */}
-        <div className="rounded-xl bg-slate-950/60 border border-slate-800/60 p-4 flex items-start space-x-3">
+        <div className="rounded-xl bg-slate-950/60 border border-white/5 p-4 flex items-start space-x-3 shadow-inner">
           <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 mt-0.5 flex-shrink-0">
             <TrendingDown className="h-4.5 w-4.5" />
           </div>

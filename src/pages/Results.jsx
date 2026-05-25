@@ -9,8 +9,11 @@ import {
 import { getAuditById } from '../utils/supabaseClient';
 import { generateMockAiSummary } from '../utils/auditEngine';
 import ResultCard from '../components/ResultCard';
+import { useCurrency } from '../context/CurrencyContext';
+import formatCurrency from '../utils/formatCurrency';
 
 export default function Results() {
+  const { currency } = useCurrency();
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const [auditData, setAuditData] = useState(null);
@@ -119,13 +122,13 @@ export default function Results() {
     );
   }
 
-  const { input_tools, audit_results, team_size, use_case, currency, company_name } = auditData;
+  const { input_tools, audit_results, team_size, use_case, company_name } = auditData;
   const recommendations = audit_results?.recommendations || [];
   const monthlySavings = audit_results?.totalMonthlySavings || 0;
   const annualSavings = audit_results?.totalAnnualSavings || 0;
 
-  // Calculate Spend Metrics
-  const totalCurrentSpend = input_tools.reduce((sum, t) => sum + Number(t.monthlySpend || 0), 0);
+  // Calculate Spend Metrics (Fallback calculation if not provided by audit engine)
+  const totalCurrentSpend = audit_results?.totalCurrentSpend || input_tools.reduce((sum, t) => sum + (t.monthlySpend || 0), 0);
   const totalOptimizedSpend = Math.max(0, totalCurrentSpend - monthlySavings);
 
   // Optimizer Efficiency Score
@@ -186,7 +189,7 @@ export default function Results() {
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">Monthly Savings Potential</span>
                 <h3 className="text-5xl font-black text-white mt-3 tracking-tight">
-                  {currency}{monthlySavings}
+                  {formatCurrency(monthlySavings, currency)}
                 </h3>
               </div>
               <p className="text-xs text-slate-400 border-t border-slate-800/80 pt-3">
@@ -200,7 +203,7 @@ export default function Results() {
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-pink-400">Projected Annual Savings</span>
                 <h3 className="text-5xl font-black text-white mt-3 tracking-tight">
-                  {currency}{annualSavings}
+                  {formatCurrency(annualSavings, currency)}
                 </h3>
               </div>
               <p className="text-xs text-slate-400 border-t border-slate-800/80 pt-3">
@@ -247,10 +250,10 @@ export default function Results() {
 
             <div className="mt-4 space-y-1">
               <span className="text-xs text-slate-300 font-semibold">
-                Current Stack Spend: {currency}{totalCurrentSpend}/mo
+                Current Stack Spend: {formatCurrency(totalCurrentSpend, currency)}/mo
               </span>
               <p className="text-[10px] text-slate-500">
-                Optimized Stack: {currency}{totalOptimizedSpend}/mo
+                Optimized Stack: {formatCurrency(totalOptimizedSpend, currency)}/mo
               </p>
             </div>
           </div>
@@ -397,6 +400,7 @@ export default function Results() {
                     required
                     value={bookingDate}
                     onChange={(e) => setBookingDate(e.target.value)}
+                    style={{ colorScheme: 'dark' }}
                     className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                   />
                 </div>

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Menu, X, ShieldCheck, Wallet, Moon, Sun } from 'lucide-react';
 import { useEffect } from 'react';
+import CurrencyToggle from './CurrencyToggle';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -63,6 +64,7 @@ export default function Navbar() {
                 <span>Audit My Spend</span>
               </motion.button>
             </Link>
+            <CurrencyToggle />
             <button 
               onClick={toggleTheme} 
               className="p-2 rounded-full border border-slate-800 bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
@@ -73,6 +75,7 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center space-x-2">
+            <CurrencyToggle />
             <button 
               onClick={toggleTheme} 
               className="p-2 rounded-full border border-slate-800 bg-slate-900 text-slate-300 hover:text-white transition-colors"

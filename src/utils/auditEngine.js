@@ -62,12 +62,15 @@ export const TOOL_METADATA = {
   }
 };
 
+import formatCurrencyUtils from './formatCurrency';
+
 // Exchange rate helper (USD to INR is roughly 83)
 const USD_TO_INR = 83;
 
-export function runSpendAudit(inputTools, currency = '$') {
+export function runSpendAudit(inputTools, currency = 'USD') {
   const recommendations = [];
   let totalMonthlySavings = 0;
+  let totalCurrentSpendUSD = 0;
 
   // Group tools by name for easy checking
   const toolsMap = {};
@@ -77,11 +80,11 @@ export function runSpendAudit(inputTools, currency = '$') {
 
   // Helper to get values in current currency
   const formatCurrency = (val) => {
-    return currency === '₹' ? `₹${Math.round(val * USD_TO_INR)}` : `$${Math.round(val)}`;
+    return formatCurrencyUtils(val, currency);
   };
 
   const getUsdAmount = (amount, toolCurrency) => {
-    if (toolCurrency === '₹') {
+    if (toolCurrency === 'INR' || toolCurrency === '₹') {
       return amount / USD_TO_INR;
     }
     return amount;
@@ -97,30 +100,36 @@ export function runSpendAudit(inputTools, currency = '$') {
     const plan = cg.plan.toLowerCase();
 
     if (plan === 'team' && users < 3) {
+      totalCurrentSpendUSD += cgSpendUSD;
       const recCostUSD = users * 20; // Plus plan cost
       const savingsUSD = cgSpendUSD - recCostUSD;
       if (savingsUSD > 1) {
         recommendations.push({
           tool: 'ChatGPT',
-          currentSpend: `${cg.currency || currency}${cg.monthlySpend}`,
+          currentSpend: formatCurrency(cgSpendUSD),
           recommendedAction: 'Downgrade to Plus plan',
+          savingsRaw: savingsUSD,
+          currentSpendRaw: cgSpendUSD,
           savings: formatCurrency(savingsUSD),
           savingsUSD: savingsUSD,
-          reason: `You have ${users} user(s). ChatGPT Team plan has a seat minimum and charges a premium ($30/user). Downgrading to ChatGPT Plus ($20/user) saves money while retaining key features like custom GPTs and model access.`
+          reason: `You have ${users} user(s). ChatGPT Team plan has a seat minimum and charges a premium (${formatCurrency(30)}/user). Downgrading to ChatGPT Plus (${formatCurrency(20)}/user) saves money while retaining key features like custom GPTs and model access.`
         });
         totalMonthlySavings += savingsUSD;
       }
     } else if (plan === 'enterprise' && users < 15) {
+      totalCurrentSpendUSD += cgSpendUSD;
       const recCostUSD = users * 30; // Team plan cost
       const savingsUSD = cgSpendUSD - recCostUSD;
       if (savingsUSD > 1) {
         recommendations.push({
           tool: 'ChatGPT',
-          currentSpend: `${cg.currency || currency}${cg.monthlySpend}`,
+          currentSpend: formatCurrency(cgSpendUSD),
           recommendedAction: 'Downgrade to Team plan',
+          savingsRaw: savingsUSD,
+          currentSpendRaw: cgSpendUSD,
           savings: formatCurrency(savingsUSD),
           savingsUSD: savingsUSD,
-          reason: `Enterprise plan pricing is optimized for large organizations (15+ seats). For ${users} users, downgrading to the standard ChatGPT Team plan ($30/user) yields substantial savings with identical AI model reasoning capacity.`
+          reason: `Enterprise plan pricing is optimized for large organizations (15+ seats). For ${users} users, downgrading to the standard ChatGPT Team plan (${formatCurrency(30)}/user) yields substantial savings with identical AI model reasoning capacity.`
         });
         totalMonthlySavings += savingsUSD;
       }
@@ -135,16 +144,19 @@ export function runSpendAudit(inputTools, currency = '$') {
     const plan = claude.plan.toLowerCase();
 
     if (plan === 'team' && users < 3) {
+      totalCurrentSpendUSD += claudeSpendUSD;
       const recCostUSD = users * 20; // Claude Pro cost
       const savingsUSD = claudeSpendUSD - recCostUSD;
       if (savingsUSD > 1) {
         recommendations.push({
           tool: 'Claude',
-          currentSpend: `${claude.currency || currency}${claude.monthlySpend}`,
+          currentSpend: formatCurrency(claudeSpendUSD),
           recommendedAction: 'Downgrade to Claude Pro',
+          savingsRaw: savingsUSD,
+          currentSpendRaw: claudeSpendUSD,
           savings: formatCurrency(savingsUSD),
           savingsUSD: savingsUSD,
-          reason: `Claude Team costs $30/seat with a 5-seat minimum in many contexts, or charges a premium. For ${users} users, Claude Pro ($20/user) offers the same Claude 3.5 Sonnet intelligence limit at a lower cost.`
+          reason: `Claude Team costs ${formatCurrency(30)}/seat with a 5-seat minimum in many contexts, or charges a premium. For ${users} users, Claude Pro (${formatCurrency(20)}/user) offers the same Claude 3.5 Sonnet intelligence limit at a lower cost.`
         });
         totalMonthlySavings += savingsUSD;
       }
@@ -159,16 +171,19 @@ export function runSpendAudit(inputTools, currency = '$') {
     const plan = gemini.plan.toLowerCase();
 
     if ((plan === 'business' || plan === 'enterprise') && users === 1) {
+      totalCurrentSpendUSD += geminiSpendUSD;
       const recCostUSD = 20; // Gemini Advanced cost
       const savingsUSD = geminiSpendUSD - recCostUSD;
       if (savingsUSD > 1) {
         recommendations.push({
           tool: 'Gemini',
-          currentSpend: `${gemini.currency || currency}${gemini.monthlySpend}`,
+          currentSpend: formatCurrency(geminiSpendUSD),
           recommendedAction: 'Downgrade to Gemini Advanced',
+          savingsRaw: savingsUSD,
+          currentSpendRaw: geminiSpendUSD,
           savings: formatCurrency(savingsUSD),
           savingsUSD: savingsUSD,
-          reason: `For a single user, Gemini Advanced ($20/mo) provides full Google Workspace integrations and Gemini 1.5 Pro access, without the business-tier seat minimums and admin markups.`
+          reason: `For a single user, Gemini Advanced (${formatCurrency(20)}/mo) provides full Google Workspace integrations and Gemini 1.5 Pro access, without the business-tier seat minimums and admin markups.`
         });
         totalMonthlySavings += savingsUSD;
       }
@@ -184,13 +199,26 @@ export function runSpendAudit(inputTools, currency = '$') {
     
     recommendations.push({
       tool: 'GitHub Copilot + Cursor',
-      currentSpend: `${copilot.currency || currency}${copilot.monthlySpend} (Copilot component)`,
+      currentSpend: `${formatCurrency(copilotSpendUSD)} (Copilot component)`,
       recommendedAction: 'Cancel GitHub Copilot',
+      savingsRaw: copilotSpendUSD,
+      currentSpendRaw: copilotSpendUSD,
       savings: formatCurrency(copilotSpendUSD),
       savingsUSD: copilotSpendUSD,
       reason: `Cursor Pro/Business has built-in, highly optimized code completions and inline edits powered by custom models and Claude Sonnet. Running GitHub Copilot in addition to Cursor is entirely redundant.`
     });
     totalMonthlySavings += copilotSpendUSD;
+    // copilotSpendUSD is already tracked if it was iterated? No, we didn't iterate copilot specifically above.
+    // Let's just track it here.
+    totalCurrentSpendUSD += copilotSpendUSD;
+  } else if (toolsMap['copilot']) {
+    const copilot = toolsMap['copilot'];
+    totalCurrentSpendUSD += getUsdAmount(copilot.monthlySpend, copilot.currency || currency);
+  }
+
+  if (toolsMap['cursor']) {
+    const cursor = toolsMap['cursor'];
+    totalCurrentSpendUSD += getUsdAmount(cursor.monthlySpend, cursor.currency || currency);
   }
 
   // ChatGPT Plus + Claude Pro Overlap (General assistants)
@@ -211,27 +239,27 @@ export function runSpendAudit(inputTools, currency = '$') {
       let cancelTool = 'ChatGPT';
       let keepTool = 'Claude';
       let cancelSpendUSD = cgSpendUSD;
-      let cancelOriginal = `${cg.currency || currency}${cg.monthlySpend}`;
+      let cancelOriginal = formatCurrency(cgSpendUSD);
 
       if (primaryUseCase === 'writing' || primaryUseCase === 'research') {
         // Claude is generally better at long-form writing, but ChatGPT is also great. Let's suggest Claude.
         cancelTool = 'ChatGPT';
         keepTool = 'Claude';
         cancelSpendUSD = cgSpendUSD;
-        cancelOriginal = `${cg.currency || currency}${cg.monthlySpend}`;
+        cancelOriginal = formatCurrency(cgSpendUSD);
       } else if (primaryUseCase === 'coding') {
         // Claude Sonnet is top tier for coding, so cancel ChatGPT.
         cancelTool = 'ChatGPT';
         keepTool = 'Claude';
         cancelSpendUSD = cgSpendUSD;
-        cancelOriginal = `${cg.currency || currency}${cg.monthlySpend}`;
+        cancelOriginal = formatCurrency(cgSpendUSD);
       } else {
         // Mixed, cancel the cheaper/more expensive depending on spend to maximize savings or keep Claude.
         if (claudeSpendUSD < cgSpendUSD) {
           cancelTool = 'Claude';
           keepTool = 'ChatGPT';
           cancelSpendUSD = claudeSpendUSD;
-          cancelOriginal = `${claude.currency || currency}${claude.monthlySpend}`;
+          cancelOriginal = formatCurrency(claudeSpendUSD);
         }
       }
 
@@ -239,6 +267,8 @@ export function runSpendAudit(inputTools, currency = '$') {
         tool: `${cancelTool} + ${keepTool} Overlap`,
         currentSpend: cancelOriginal,
         recommendedAction: `Consolidate: Cancel ${cancelTool}`,
+        savingsRaw: cancelSpendUSD,
+        currentSpendRaw: cancelSpendUSD,
         savings: formatCurrency(cancelSpendUSD),
         savingsUSD: cancelSpendUSD,
         reason: `Both ChatGPT and ${keepTool} provide state-of-the-art reasoning, web search, and data analysis. Given your primary usecase is '${primaryUseCase}', consolidating to ${keepTool} is highly efficient and eliminates subscription overlap.`
@@ -257,12 +287,19 @@ export function runSpendAudit(inputTools, currency = '$') {
     const apiTool = toolsMap[name];
     const spendUSD = getUsdAmount(apiTool.monthlySpend, apiTool.currency || currency);
     
+    // Track API spend if it wasn't already tracked (chatgpt and claude were already tracked above)
+    if (name === 'openai_api') {
+      totalCurrentSpendUSD += spendUSD;
+    }
+    
     if (spendUSD > 100) {
       const savingsUSD = spendUSD * 0.35; // 35% estimated savings via caching/routing
       recommendations.push({
         tool: apiTool.name + ' API',
-        currentSpend: `${apiTool.currency || currency}${apiTool.monthlySpend}`,
+        currentSpend: formatCurrency(spendUSD),
         recommendedAction: 'Implement Prompt Caching & Model Routing',
+        savingsRaw: savingsUSD,
+        currentSpendRaw: spendUSD,
         savings: formatCurrency(savingsUSD),
         savingsUSD: savingsUSD,
         reason: `Your monthly API spend is high (${formatCurrency(spendUSD)}). Enabling Claude 3.5 Sonnet / GPT-4o Prompt Caching will reduce input token costs by up to 50%. Additionally, routing standard logic tasks to cheaper models like GPT-4o-mini or Claude Haiku can save up to 80% per token.`
@@ -274,23 +311,27 @@ export function runSpendAudit(inputTools, currency = '$') {
   // If total savings exceed actual total spend (due to consolidations suggesting cancelling entire tools),
   // let's cap it or ensure it's logical. It is logical because they are literally cancelling a tool!
   
-  const finalMonthlySavings = currency === '₹' ? Math.round(totalMonthlySavings * USD_TO_INR) : Math.round(totalMonthlySavings);
+  const finalMonthlySavings = Math.round(totalMonthlySavings);
   const finalAnnualSavings = finalMonthlySavings * 12;
+  const finalTotalSpend = Math.round(totalCurrentSpendUSD);
 
   return {
     totalMonthlySavings: finalMonthlySavings,
     totalAnnualSavings: finalAnnualSavings,
+    totalCurrentSpend: finalTotalSpend,
     recommendations: recommendations.map(rec => ({
       tool: rec.tool,
       currentSpend: rec.currentSpend,
       recommendedAction: rec.recommendedAction,
       savings: rec.savings,
+      savingsRaw: rec.savingsRaw,
+      currentSpendRaw: rec.currentSpendRaw,
       reason: rec.reason
     }))
   };
 }
 
-export function generateMockAiSummary(auditResult, teamSize, primaryUseCase) {
+export function generateMockAiSummary(auditResult, teamSize, primaryUseCase, currency = 'USD') {
   const { totalMonthlySavings, totalAnnualSavings, recommendations } = auditResult;
   
   if (recommendations.length === 0) {
@@ -299,7 +340,7 @@ export function generateMockAiSummary(auditResult, teamSize, primaryUseCase) {
 
   const primaryRec = recommendations[0];
   const savingsText = totalMonthlySavings > 0 
-    ? `We identified an immediate monthly savings of ${totalMonthlySavings > 0 ? (typeof totalMonthlySavings === 'number' ? `$${totalMonthlySavings}` : totalMonthlySavings) : '$0'} (${totalAnnualSavings > 0 ? (typeof totalAnnualSavings === 'number' ? `$${totalAnnualSavings}` : totalAnnualSavings) : '$0'} annually) across your AI portfolio.`
+    ? `We identified an immediate monthly savings of ${totalMonthlySavings > 0 ? formatCurrencyUtils(totalMonthlySavings, currency) : '$0'} (${totalAnnualSavings > 0 ? formatCurrencyUtils(totalAnnualSavings, currency) : '$0'} annually) across your AI portfolio.`
     : `Your AI portfolio is relatively stable, though incremental optimizations can be made.`;
 
   // Dynamic summary formulation
